@@ -1,6 +1,8 @@
 # Dependencies
 node_modules/
-package-lock.json
+# Keep per-package lockfiles committed (needed for CI reproducibility).
+# Only ignore a root-level lockfile (this repo's root isn't the app package).
+/package-lock.json
 
 # Build outputs
 dist/
