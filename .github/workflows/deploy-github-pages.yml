@@ -42,7 +42,7 @@ jobs:
           VITE_CESIUM_TOKEN: "${{ secrets.VITE_CESIUM_TOKEN }}"
         run: npm run build
 
-      - name: Configure Pages
+      - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
@@ -53,6 +53,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
