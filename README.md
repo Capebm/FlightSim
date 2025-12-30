@@ -100,6 +100,34 @@ npm run build
 npm run preview
 ```
 
+## Publish a browser link (deployment)
+
+### Option A: GitHub Pages (recommended simplest public link)
+
+1. Push your code to GitHub on the `main` branch.
+2. In GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**
+3. The included workflow will deploy automatically on every push to `main`.
+
+Your public URL will be:
+
+- `https://<github-username>.github.io/<repo-name>/`
+
+For example, if your repo name is `cesium-flight-simulator`:
+
+- `https://<github-username>.github.io/cesium-flight-simulator/`
+
+### Option B: Cloudflare Pages (already included)
+
+This repo includes a Cloudflare Pages deploy script (requires Cloudflare credentials in `.env`):
+
+```bash
+npm run deploy:web
+```
+
+It prints a public URL like:
+
+- `https://<your-project>.pages.dev`
+
 ## License
 
 MIT License - see LICENSE file for details

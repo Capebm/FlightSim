@@ -21,19 +21,28 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}🚀 Cesium Flight Simulator Deployment (Cloudflare Pages)${NC}"
 echo "===================================================="
 
-# Check if wrangler is installed
-if ! command -v npx wrangler &> /dev/null; then
-    echo -e "${RED}❌ Error: Wrangler CLI not found${NC}"
+# Check if npx exists
+if ! command -v npx &> /dev/null; then
+    echo -e "${RED}❌ Error: npx not found${NC}"
     echo ""
-    echo "Install it globally:"
-    echo "  npm install -g wrangler"
-    echo ""
-    echo "Or locally in the project:"
-    echo "  npm install --save-dev wrangler"
+    echo "Install Node.js (which includes npm/npx):"
+    echo "  https://nodejs.org/"
     exit 1
 fi
 
-echo -e "${GREEN}✓${NC} Wrangler CLI found"
+# Check if Wrangler is available (via npx) without prompting for interactivity
+if ! npx --yes wrangler --version &> /dev/null; then
+    echo -e "${RED}❌ Error: Wrangler CLI not available via npx${NC}"
+    echo ""
+    echo "Install it locally in the project root:"
+    echo "  npm install --save-dev wrangler"
+    echo ""
+    echo "Or globally:"
+    echo "  npm install -g wrangler"
+    exit 1
+fi
+
+echo -e "${GREEN}✓${NC} Wrangler CLI available"
 
 # Load .env file if it exists
 if [ -f "$PROJECT_ROOT/.env" ]; then
@@ -105,7 +114,7 @@ fi
 echo ""
 echo -e "${BLUE}🚀 Deploying to Cloudflare Pages...${NC}"
 
-npx wrangler pages deploy ./dist \
+npx --yes wrangler pages deploy ./dist \
   --project-name="$PROJECT_NAME" \
   --branch=main
 
