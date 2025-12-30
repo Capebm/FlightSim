@@ -37,6 +37,9 @@ jobs:
         env:
           # GitHub Pages serves the site under "/<repo>/"
           VITE_BASE_PATH: "/${{ github.event.repository.name }}/"
+          # Inject tokens at build time (note: these will be embedded into the built JS bundle)
+          VITE_MAPBOX_TOKEN: "${{ secrets.VITE_MAPBOX_TOKEN }}"
+          VITE_CESIUM_TOKEN: "${{ secrets.VITE_CESIUM_TOKEN }}"
         run: npm run build
 
       - name: Configure Pages
