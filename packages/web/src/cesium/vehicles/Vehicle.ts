@@ -16,6 +16,10 @@ export interface VehicleConfig {
   modelColor?: Cesium.Color;
   modelColorBlendMode?: Cesium.ColorBlendMode;
   modelColorBlendAmount?: number;
+  /**
+   * Flag for TAP-specific livery customization
+   */
+  isTapVariant?: boolean;
 }
 
 export interface VehicleState {
@@ -102,6 +106,97 @@ export abstract class Vehicle implements Updatable {
         this.primitive.colorBlendAmount = this.config.modelColorBlendAmount;
       }
     }
+
+    // Apply TAP-specific livery customization
+    if (this.config.isTapVariant) {
+      this.applyTapLivery();
+    }
+  }
+
+  /**
+   * Apply TAP Air Portugal livery customization
+   * Attempts to customize materials for authentic TAP appearance:
+   * - White fuselage (main body)
+   * - Red tail fin accent (#d4002a)
+   * 
+   * This method tries to access the model's scene graph to customize individual materials.
+   * If the model structure doesn't allow this, the white base color blend will still provide
+   * a cleaner appearance than the previous red tint.
+   */
+  protected applyTapLivery(): void {
+    if (!this.primitive) return;
+
+    // Wait a bit for the model to fully initialize
+    setTimeout(() => {
+      try {
+        // Access the model's scene graph to customize individual materials
+        const scene = this.primitive?.sceneGraph;
+        if (!scene || !scene.root) {
+          return;
+        }
+
+        // TAP red color for tail accents
+        const tapRed = Cesium.Color.fromCssColorString('#d4002a');
+        const whiteColor = Cesium.Color.WHITE;
+        
+        // Traverse the scene graph to find and customize materials
+        const processNode = (node: any): void => {
+          if (!node) return;
+
+          // Check if node has a mesh with materials
+          if (node.mesh && node.mesh.primitives) {
+            for (const primitive of node.mesh.primitives) {
+              if (primitive.material) {
+                const material = primitive.material;
+                
+                // Try to identify tail/vertical stabilizer by name
+                // Common naming patterns: "tail", "fin", "vertical", "stabilizer"
+                const nodeName = (node.name || '').toLowerCase();
+                const isTailPart = nodeName.includes('tail') || 
+                                  nodeName.includes('fin') || 
+                                  nodeName.includes('vertical') ||
+                                  nodeName.includes('stabilizer');
+
+                if (isTailPart && material.uniforms) {
+                  // Apply red color to tail parts
+                  if (material.uniforms.baseColor) {
+                    material.uniforms.baseColor = tapRed;
+                  } else if (material.uniforms.diffuse) {
+                    material.uniforms.diffuse = tapRed;
+                  }
+                } else if (!isTailPart && material.uniforms) {
+                  // For fuselage/main body, lighten towards white
+                  if (material.uniforms.baseColor) {
+                    const currentColor = material.uniforms.baseColor;
+                    if (currentColor) {
+                      material.uniforms.baseColor = Cesium.Color.lerp(
+                        currentColor,
+                        whiteColor,
+                        0.2,
+                        new Cesium.Color()
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          // Recursively process child nodes
+          if (node.children && Array.isArray(node.children)) {
+            for (const child of node.children) {
+              processNode(child);
+            }
+          }
+        };
+
+        // Start processing from root
+        processNode(scene.root);
+      } catch (error) {
+        // Silently fail - the white base color blend will still provide better appearance
+        console.debug('TAP livery customization not available:', error);
+      }
+    }, 100);
   }
 
   public abstract update(deltaTime: number): void;

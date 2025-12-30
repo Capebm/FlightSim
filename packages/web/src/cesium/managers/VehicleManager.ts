@@ -188,10 +188,12 @@ export class VehicleManager implements Updatable {
       heading,
       ...(isTap
         ? {
-            // Approximate "TAP" livery by tinting the model toward TAP red.
-            modelColor: Cesium.Color.fromCssColorString('#d4002a'),
+            // TAP Air Portugal livery: primarily white fuselage with red tail accents
+            // Use white base with minimal blend to preserve model textures
+            modelColor: Cesium.Color.WHITE,
             modelColorBlendMode: Cesium.ColorBlendMode.MIX,
-            modelColorBlendAmount: 0.35,
+            modelColorBlendAmount: 0.1, // Very subtle to preserve original textures
+            isTapVariant: true, // Flag for additional TAP-specific customization
           }
         : {}),
     });
