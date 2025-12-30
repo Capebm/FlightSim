@@ -9,6 +9,13 @@ export interface VehicleConfig {
   pitch?: number;
   roll?: number;
   modelHeadingOffset?: number;
+  /**
+   * Optional appearance overrides for the glTF model.
+   * NOTE: This is a per-model color blend in Cesium, not a true livery/texture swap.
+   */
+  modelColor?: Cesium.Color;
+  modelColorBlendMode?: Cesium.ColorBlendMode;
+  modelColorBlendAmount?: number;
 }
 
 export interface VehicleState {
@@ -70,6 +77,7 @@ export abstract class Vehicle implements Updatable {
       );
 
       this.primitive?.readyEvent.addEventListener(() => {
+        this.applyModelAppearance();
         this.isReady = true;
         this.onModelReady();
       });
@@ -80,6 +88,20 @@ export abstract class Vehicle implements Updatable {
 
   protected onModelReady(): void {
     // Override in subclasses for specific initialization
+  }
+
+  protected applyModelAppearance(): void {
+    if (!this.primitive) return;
+
+    if (this.config.modelColor) {
+      this.primitive.color = this.config.modelColor;
+      if (this.config.modelColorBlendMode !== undefined) {
+        this.primitive.colorBlendMode = this.config.modelColorBlendMode;
+      }
+      if (typeof this.config.modelColorBlendAmount === 'number') {
+        this.primitive.colorBlendAmount = this.config.modelColorBlendAmount;
+      }
+    }
   }
 
   public abstract update(deltaTime: number): void;

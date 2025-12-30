@@ -11,12 +11,15 @@ const DEFAULT_SPAWN_LOCATION = {
   lat: 57.7089
 };
 
+export type AircraftVariant = 'default' | 'tap';
+
 export class VehicleManager implements Updatable {
   private vehicles: Map<string, Vehicle> = new Map();
   private activeVehicle: Vehicle | null = null;
   private scene: Scene;
   private onVehicleChangeCallback: ((vehicle: Vehicle) => void) | null = null;
   private onVehicleChangeCallbacks: Array<(vehicle: Vehicle) => void> = [];
+  private aircraftVariant: AircraftVariant = 'default';
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -160,18 +163,37 @@ export class VehicleManager implements Updatable {
     return car;
   }
 
-  public async spawnAircraft(id: string = 'aircraft', position?: Cesium.Cartesian3, heading: number = 0): Promise<Vehicle> {
+  public async spawnAircraft(
+    id: string = 'aircraft',
+    position?: Cesium.Cartesian3,
+    heading: number = 0,
+    variant?: AircraftVariant
+  ): Promise<Vehicle> {
     const spawnPosition = position || Cesium.Cartesian3.fromDegrees(
       DEFAULT_SPAWN_LOCATION.lng,
       DEFAULT_SPAWN_LOCATION.lat,
       200
     );
     
+    const useVariant: AircraftVariant = variant ?? this.aircraftVariant;
+    this.aircraftVariant = useVariant;
+
+    const isTap = useVariant === 'tap';
+    const modelUrl = isTap ? './tap-plane.glb' : './plane.glb';
+
     const aircraft = new Aircraft(id, {
-      modelUrl: './plane.glb',
+      modelUrl,
       scale: 5,
       position: spawnPosition,
-      heading
+      heading,
+      ...(isTap
+        ? {
+            // Approximate "TAP" livery by tinting the model toward TAP red.
+            modelColor: Cesium.Color.fromCssColorString('#d4002a'),
+            modelColorBlendMode: Cesium.ColorBlendMode.MIX,
+            modelColorBlendAmount: 0.35,
+          }
+        : {}),
     });
 
     await this.addVehicle(aircraft);
@@ -191,7 +213,7 @@ export class VehicleManager implements Updatable {
       await this.spawnCar('car', state.position, state.heading);
     } else {
       console.log('🛫 Switching to Aircraft');
-      await this.spawnAircraft('aircraft', state.position, state.heading);
+      await this.spawnAircraft('aircraft', state.position, state.heading, this.aircraftVariant);
     }
   }
 
@@ -208,9 +230,23 @@ export class VehicleManager implements Updatable {
     const heading = 0;
 
     if (isAircraft) {
-      await this.spawnAircraft('aircraft', originalSpawn, heading);
+      await this.spawnAircraft('aircraft', originalSpawn, heading, this.aircraftVariant);
     } else {
       await this.spawnCar('car', originalSpawn, heading);
+    }
+  }
+
+  public getAircraftVariant(): AircraftVariant {
+    return this.aircraftVariant;
+  }
+
+  public async setAircraftVariant(variant: AircraftVariant): Promise<void> {
+    this.aircraftVariant = variant;
+
+    const active = this.activeVehicle;
+    if (active instanceof Aircraft) {
+      const state = active.getState();
+      await this.spawnAircraft('aircraft', state.position, state.heading, variant);
     }
   }
 

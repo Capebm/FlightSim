@@ -9,9 +9,10 @@ import { QualityControls } from './QualityControls';
 
 export function DebugPanel() {
   const [isOpen, setIsOpen] = useState(false);
-  const { toggleCollisionDetection, toggleRoverMode, toggleVehicleType, switchCamera } = useGameMethod();
+  const { toggleCollisionDetection, toggleRoverMode, toggleVehicleType, switchCamera, switchAircraftVariant, getAircraftVariant } = useGameMethod();
   const { collisionEnabled, heightLockEnabled, fps } = useDebugInfo();
   const { config, updateSetting, applyPreset } = useQualitySettings();
+  const [aircraftVariant, setAircraftVariant] = useState<'default' | 'tap'>(() => getAircraftVariant());
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -94,6 +95,18 @@ export function DebugPanel() {
                   className="w-full"
                 >
                   🔄 Switch Vehicle (M)
+                </Button>
+
+                <Button
+                  onClick={async () => {
+                    await switchAircraftVariant();
+                    setAircraftVariant(getAircraftVariant());
+                  }}
+                  variant={aircraftVariant === 'tap' ? 'primary' : 'secondary'}
+                  size="sm"
+                  className="w-full"
+                >
+                  ✈️ {aircraftVariant === 'tap' ? 'TAP Plane' : 'Default Plane'}
                 </Button>
               </div>
 

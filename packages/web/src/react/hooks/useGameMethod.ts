@@ -25,6 +25,8 @@ export function useGameMethod() {
     setMode: (mode: 'play' | 'builder') => bridge.setMode(mode),
     getMode: () => bridge.getMode(),
     setThrottle: (percent: number) => bridge.setThrottle(percent),
+    switchAircraftVariant: () => bridge.switchAircraftVariant(),
+    getAircraftVariant: () => bridge.getAircraftVariant(),
   };
 }
 

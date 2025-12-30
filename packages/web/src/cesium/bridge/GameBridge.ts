@@ -288,5 +288,24 @@ export class GameBridge extends TypedEventEmitter<GameEvents> {
   public setThrottle(percent: number): void {
     this.game.getInputManager().setThrottlePercent(percent * 100);
   }
+
+  public async switchAircraftVariant(): Promise<void> {
+    const vehicleManager = this.game.getVehicleManager();
+    const currentVariant = vehicleManager.getAircraftVariant();
+    const newVariant = currentVariant === 'tap' ? 'default' : 'tap';
+    
+    await vehicleManager.setAircraftVariant(newVariant);
+    
+    // If currently in aircraft, respawn with new variant
+    const active = vehicleManager.getActiveVehicle();
+    if (active && active instanceof Aircraft) {
+      const state = active.getState();
+      await vehicleManager.spawnAircraft('aircraft', state.position, state.heading, newVariant);
+    }
+  }
+
+  public getAircraftVariant(): 'default' | 'tap' {
+    return this.game.getVehicleManager().getAircraftVariant();
+  }
 }
 
