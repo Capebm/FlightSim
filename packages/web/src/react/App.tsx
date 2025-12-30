@@ -9,6 +9,7 @@ import { isMobileDevice } from './shared/utils/mobileDetect';
 import { useGameMethod } from './hooks/useGameMethod';
 import { HUD } from './features/hud/components/HUD';
 import { CrashScreen } from './features/crash/components/CrashScreen';
+import { MiniMap } from './features/minimap/components/MiniMap';
 
 export function App() {
   const { mode } = useGameMode();
@@ -35,6 +36,8 @@ export function App() {
       {mode === 'play' && !isMobile && <PlayModeUI />}
       {mode === 'builder' && <BuilderModeUI />}
       <HUD   />
+      {/* MiniMap with location search - available on all devices */}
+      {mode === 'play' && <MiniMap />}
       {isMobile && <ThrottleSlider onChange={handleThrottleChange} />}
       <CrashScreen />
     </>
